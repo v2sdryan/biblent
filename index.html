@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>新約聖經</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
+            background: #f7f5f0;
+            color: #2c2c2c;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #3b2e1e;
+            color: #f5f0e8;
+            padding: 14px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .settings-btn {
+            background: none;
+            border: 1px solid #8b7d6b;
+            color: #d4cfc5;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            line-height: 1;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .control-group label {
+            font-size: 14px;
+            color: #d4cfc5;
+            white-space: nowrap;
+        }
+
+        select {
+            padding: 7px 10px;
+            border: 1px solid #8b7d6b;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #f5f0e8;
+            color: #3b2e1e;
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #c19a5b;
+            box-shadow: 0 0 0 2px rgba(193, 154, 91, 0.3);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        button {
+            padding: 7px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #c19a5b;
+            color: #fff;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: #a8823e;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        button:disabled {
+            background: #8b8178;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        main {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 24px 20px 60px;
+        }
+
+        .chapter-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #3b2e1e;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #c19a5b;
+            letter-spacing: 1px;
+        }
+
+        .verse {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 10px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            line-height: 1.9;
+            transition: background 0.15s;
+        }
+
+        .verse:hover {
+            background: #eee8dc;
+        }
+
+        .verse-number {
+            flex-shrink: 0;
+            font-weight: 700;
+            color: #c19a5b;
+            width: 32px;
+            min-width: 32px;
+            margin-right: 8px;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .verse-text {
+            flex: 1;
+            font-size: 17px;
+            color: #333;
+            line-height: 1.9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8b7d6b;
+            font-size: 18px;
+        }
+
+        .error {
+            text-align: center;
+            padding: 60px 20px;
+            color: #c0392b;
+            font-size: 16px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #8b8178;
+            font-size: 13px;
+            border-top: 1px solid #ddd5c8;
+            background: #f0ebe3;
+        }
+
+        /* ---- Settings Panel ---- */
+        .settings-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .settings-overlay.open {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 380px;
+            max-width: 100vw;
+            height: 100vh;
+            background: #faf8f4;
+            z-index: 210;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            animation: slideIn 0.25s ease;
+        }
+
+        .settings-panel.open {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #ddd5c8;
+            background: #3b2e1e;
+            color: #f5f0e8;
+        }
+
+        .settings-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            color: #d4cfc5;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+
+        .settings-close:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-section h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #3b2e1e;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            gap: 12px;
+        }
+
+        .setting-row label {
+            font-size: 14px;
+            color: #555;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+
+        .setting-row input[type="range"] {
+            flex: 1;
+            accent-color: #c19a5b;
+            cursor: pointer;
+        }
+
+        .setting-row .range-value {
+            font-size: 13px;
+            color: #8b7d6b;
+            min-width: 44px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .setting-row select {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        /* ---- Preview ---- */
+        .preview-section {
+            border-top: 1px solid #ddd5c8;
+            padding: 20px;
+            background: #f7f5f0;
+        }
+
+        .preview-section h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #3b2e1e;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .preview-box {
+            background: #fff;
+            border: 1px solid #ddd5c8;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .preview-box .verse {
+            margin-bottom: 0;
+            padding: 8px 10px;
+        }
+
+        .settings-reset {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 10px;
+            background: #eee8dc;
+            color: #3b2e1e;
+            border: 1px solid #ddd5c8;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .settings-reset:hover {
+            background: #ddd5c8;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            header {
+                padding: 10px 12px;
+            }
+
+            .header-top {
+                margin-bottom: 8px;
+            }
+
+            header h1 {
+                font-size: 18px;
+            }
+
+            .controls {
+                gap: 8px;
+            }
+
+            .control-group {
+                flex: 1 1 auto;
+            }
+
+            .control-group label {
+                font-size: 13px;
+            }
+
+            select {
+                font-size: 14px;
+                padding: 6px 8px;
+                width: 100%;
+            }
+
+            button {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+
+            main {
+                padding: 16px 14px 40px;
+            }
+
+            .chapter-title {
+                font-size: 19px;
+                margin-bottom: 14px;
+            }
+
+            .verse {
+                padding: 6px 4px;
+                margin-bottom: 6px;
+            }
+
+            .verse-text {
+                font-size: 16px;
+                line-height: 1.85;
+            }
+
+            .settings-panel {
+                width: 100vw;
+            }
+
+            .setting-row {
+                flex-wrap: wrap;
+            }
+
+            .setting-row label {
+                min-width: 100%;
+                margin-bottom: 4px;
+            }
+
+            .setting-row input[type="range"] {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-top">
+            <h1>新約聖經</h1>
+            <button class="settings-btn" id="settingsBtn" title="設定">&#9881;</button>
+        </div>
+        <div class="controls">
+            <div class="control-group">
+                <label for="bookSelect">書卷：</label>
+                <select id="bookSelect"></select>
+            </div>
+            <div class="control-group">
+                <label for="chapterSelect">章：</label>
+                <select id="chapterSelect"></select>
+            </div>
+            <div class="nav-buttons">
+                <button id="prevBtn" disabled>&#8592; 上一章</button>
+                <button id="nextBtn" disabled>下一章 &#8594;</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Settings Panel -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h2>顯示設定</h2>
+            <button class="settings-close" id="settingsClose">&times;</button>
+        </div>
+        <div class="settings-body">
+            <div class="settings-section">
+                <h3>字型</h3>
+                <div class="setting-row">
+                    <label for="setFontFamily">字體：</label>
+                    <select id="setFontFamily">
+                        <option value='"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif'>微軟正黑體</option>
+                        <option value='"PMingLiU", "MingLiU", "Noto Serif TC", serif'>新細明體</option>
+                        <option value='"DFKai-SB", "BiauKai", "KaiTi", cursive'>標楷體</option>
+                        <option value='"Noto Sans TC", "Source Han Sans TC", sans-serif'>Noto Sans TC</option>
+                        <option value='"Noto Serif TC", "Source Han Serif TC", serif'>Noto Serif TC</option>
+                        <option value='Georgia, "Times New Roman", serif'>Georgia</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label for="setFontSize">字體大小：</label>
+                    <input type="range" id="setFontSize" min="14" max="28" step="1" value="17" />
+                    <span class="range-value" id="fontSizeVal">17px</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3>排版</h3>
+                <div class="setting-row">
+                    <label for="setLineHeight">行距：</label>
+                    <input type="range" id="setLineHeight" min="1.4" max="3.0" step="0.1" value="1.9" />
+                    <span class="range-value" id="lineHeightVal">1.9</span>
+                </div>
+                <div class="setting-row">
+                    <label for="setVerseGap">節距：</label>
+                    <input type="range" id="setVerseGap" min="0" max="24" step="2" value="10" />
+                    <span class="range-value" id="verseGapVal">10px</span>
+                </div>
+                <div class="setting-row">
+                    <label for="setNumWidth">節號寬度：</label>
+                    <input type="range" id="setNumWidth" min="20" max="50" step="2" value="32" />
+                    <span class="range-value" id="numWidthVal">32px</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3>顏色</h3>
+                <div class="setting-row">
+                    <label for="setTextColor">經文顏色：</label>
+                    <select id="setTextColor">
+                        <option value="#333">深灰（預設）</option>
+                        <option value="#000">純黑</option>
+                        <option value="#1a1a2e">深藍黑</option>
+                        <option value="#4a3728">深棕</option>
+                        <option value="#555">中灰</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label for="setBgColor">背景顏色：</label>
+                    <select id="setBgColor">
+                        <option value="#f7f5f0">米白（預設）</option>
+                        <option value="#ffffff">純白</option>
+                        <option value="#fdf6e3">暖黃</option>
+                        <option value="#f0ebe3">淺棕</option>
+                        <option value="#eef2f7">淺藍</option>
+                        <option value="#1a1a2e" data-text="#d4d4d4">深色模式</option>
+                    </select>
+                </div>
+            </div>
+            <button class="settings-reset" id="settingsReset">重設為預設值</button>
+        </div>
+        <div class="preview-section">
+            <h3>預覽</h3>
+            <div class="preview-box" id="previewBox">
+                <div class="verse" id="previewVerse">
+                    <span class="verse-number" id="previewNum">8</span>
+                    <span class="verse-text" id="previewText">你們得救是本乎恩，也因著信；這並不是出於自己，乃是神所賜的；也不是出於行為，免得有人自誇。</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="content">
+        <div class="loading">載入中⋯</div>
+    </main>
+
+    <footer>新約聖經 — 新細明體原稿譯本</footer>
+
+    <script>
+        const BOOK_NAME_ZH = {
+            'Romans': '羅馬書',
+            'Ephesians': '以弗所書',
+            'Philippians': '腓立比書',
+            'Colossians': '歌羅西書',
+            'I Thessalonians': '帖撒羅尼迦前書',
+            'II Thessalonians': '帖撒羅尼迦後書',
+            'II Timothy': '提摩太後書',
+            'Titus': '提多書',
+            'Philemon': '腓利門書',
+            'James': '雅各書',
+            'I Peter': '彼得前書',
+            'II Peter': '彼得後書',
+            'I John': '約翰壹書',
+            'II John': '約翰貳書',
+            'III John': '約翰叁書',
+            'Jude': '猶大書',
+        };
+
+        const BOOK_ORDER = [
+            'Romans', 'Ephesians', 'Philippians', 'Colossians',
+            'I Thessalonians', 'II Thessalonians', 'II Timothy', 'Titus',
+            'Philemon', 'James', 'I Peter', 'II Peter',
+            'I John', 'II John', 'III John', 'Jude'
+        ];
+
+        const el = {
+            bookSelect: document.getElementById('bookSelect'),
+            chapterSelect: document.getElementById('chapterSelect'),
+            prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn'),
+            content: document.getElementById('content'),
+        };
+
+        let bibleData = {};
+        let bookList = [];
+
+        /* ---- Helpers ---- */
+        function clearEl(node) {
+            while (node.firstChild) node.removeChild(node.firstChild);
+        }
+
+        function makeEl(tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text != null) e.textContent = text;
+            return e;
+        }
+
+        /* ---- CSV Parsing ---- */
+        function parseCSV(text) {
+            const rows = [];
+            let i = 0;
+            const len = text.length;
+            if (text.charCodeAt(0) === 0xFEFF) i = 1;
+
+            // Skip header line
+            while (i < len && text[i] !== '\n') i++;
+            i++;
+
+            while (i < len) {
+                const row = [];
+                for (let col = 0; col < 4; col++) {
+                    if (i >= len) break;
+                    if (text[i] === '"') {
+                        i++;
+                        let val = '';
+                        while (i < len) {
+                            if (text[i] === '"') {
+                                if (i + 1 < len && text[i + 1] === '"') {
+                                    val += '"';
+                                    i += 2;
+                                } else {
+                                    i++;
+                                    break;
+                                }
+                            } else {
+                                val += text[i];
+                                i++;
+                            }
+                        }
+                        row.push(val);
+                        if (i < len && text[i] === ',') i++;
+                    } else {
+                        let val = '';
+                        while (i < len) {
+                            if (col < 3 && text[i] === ',') break;
+                            if (text[i] === '\r' || text[i] === '\n') break;
+                            val += text[i];
+                            i++;
+                        }
+                        row.push(val);
+                        if (i < len && text[i] === ',') i++;
+                    }
+                }
+                while (i < len && (text[i] === '\r' || text[i] === '\n')) i++;
+                if (row.length >= 4) rows.push(row);
+            }
+            return rows;
+        }
+
+        function buildData(rows) {
+            const data = {};
+            const bookSet = new Set();
+            for (const [book, ch, verse, text] of rows) {
+                if (!book) continue;
+                if (!data[book]) data[book] = {};
+                const chNum = parseInt(ch, 10);
+                if (!data[book][chNum]) data[book][chNum] = [];
+                data[book][chNum].push({ verse: parseInt(verse, 10), text });
+                bookSet.add(book);
+            }
+            const ordered = BOOK_ORDER.filter(b => bookSet.has(b));
+            const extras = [...bookSet].filter(b => !BOOK_ORDER.includes(b));
+            return { data, bookList: [...ordered, ...extras] };
+        }
+
+        /* ---- UI ---- */
+        function populateBooks() {
+            clearEl(el.bookSelect);
+            bookList.forEach(b => {
+                const opt = makeEl('option', null, BOOK_NAME_ZH[b] || b);
+                opt.value = b;
+                el.bookSelect.appendChild(opt);
+            });
+        }
+
+        function populateChapters(book) {
+            clearEl(el.chapterSelect);
+            const chapters = Object.keys(bibleData[book] || {}).map(Number).sort((a, b) => a - b);
+            chapters.forEach(ch => {
+                const opt = makeEl('option', null, '\u7B2C ' + ch + ' \u7AE0');
+                opt.value = ch;
+                el.chapterSelect.appendChild(opt);
+            });
+        }
+
+        function getSelectedBook() { return el.bookSelect.value; }
+        function getSelectedChapter() { return parseInt(el.chapterSelect.value, 10); }
+        function getChapters(book) {
+            return Object.keys(bibleData[book] || {}).map(Number).sort((a, b) => a - b);
+        }
+
+        function displayChapter(book, chapter) {
+            const verses = bibleData[book] && bibleData[book][chapter];
+            clearEl(el.content);
+
+            const title = makeEl('div', 'chapter-title',
+                (BOOK_NAME_ZH[book] || book) + '\u3000\u7B2C ' + chapter + ' \u7AE0');
+            el.content.appendChild(title);
+
+            if (!verses || !verses.length) {
+                el.content.appendChild(makeEl('div', 'error', '找不到經文。'));
+                return;
+            }
+
+            verses.forEach(function (v) {
+                const div = makeEl('div', 'verse');
+                div.appendChild(makeEl('span', 'verse-number', v.verse));
+                div.appendChild(makeEl('span', 'verse-text', v.text));
+                el.content.appendChild(div);
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateNavButtons() {
+            const book = getSelectedBook();
+            const chapter = getSelectedChapter();
+            const bi = bookList.indexOf(book);
+            const chapters = getChapters(book);
+            const ci = chapters.indexOf(chapter);
+            el.prevBtn.disabled = (bi === 0 && ci === 0);
+            el.nextBtn.disabled = (bi === bookList.length - 1 && ci === chapters.length - 1);
+        }
+
+        function show() {
+            displayChapter(getSelectedBook(), getSelectedChapter());
+            updateNavButtons();
+        }
+
+        function goPrev() {
+            const book = getSelectedBook();
+            const chapters = getChapters(book);
+            const ci = chapters.indexOf(getSelectedChapter());
+            if (ci > 0) {
+                el.chapterSelect.value = chapters[ci - 1];
+            } else {
+                const bi = bookList.indexOf(book);
+                if (bi > 0) {
+                    const prevBook = bookList[bi - 1];
+                    el.bookSelect.value = prevBook;
+                    populateChapters(prevBook);
+                    const prevChs = getChapters(prevBook);
+                    el.chapterSelect.value = prevChs[prevChs.length - 1];
+                }
+            }
+            show();
+        }
+
+        function goNext() {
+            const book = getSelectedBook();
+            const chapters = getChapters(book);
+            const ci = chapters.indexOf(getSelectedChapter());
+            if (ci < chapters.length - 1) {
+                el.chapterSelect.value = chapters[ci + 1];
+            } else {
+                const bi = bookList.indexOf(book);
+                if (bi < bookList.length - 1) {
+                    const nextBook = bookList[bi + 1];
+                    el.bookSelect.value = nextBook;
+                    populateChapters(nextBook);
+                    el.chapterSelect.value = getChapters(nextBook)[0];
+                }
+            }
+            show();
+        }
+
+        /* ---- Settings ---- */
+        const DEFAULTS = {
+            fontFamily: '"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif',
+            fontSize: 17,
+            lineHeight: 1.9,
+            verseGap: 10,
+            numWidth: 32,
+            textColor: '#333',
+            bgColor: '#f7f5f0',
+        };
+
+        const settingsPanel = document.getElementById('settingsPanel');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsClose = document.getElementById('settingsClose');
+        const settingsReset = document.getElementById('settingsReset');
+
+        const setFontFamily = document.getElementById('setFontFamily');
+        const setFontSize = document.getElementById('setFontSize');
+        const setLineHeight = document.getElementById('setLineHeight');
+        const setVerseGap = document.getElementById('setVerseGap');
+        const setNumWidth = document.getElementById('setNumWidth');
+        const setTextColor = document.getElementById('setTextColor');
+        const setBgColor = document.getElementById('setBgColor');
+
+        const fontSizeVal = document.getElementById('fontSizeVal');
+        const lineHeightVal = document.getElementById('lineHeightVal');
+        const verseGapVal = document.getElementById('verseGapVal');
+        const numWidthVal = document.getElementById('numWidthVal');
+
+        const previewVerse = document.getElementById('previewVerse');
+        const previewNum = document.getElementById('previewNum');
+        const previewText = document.getElementById('previewText');
+        const previewBox = document.getElementById('previewBox');
+
+        function openSettings() {
+            settingsPanel.classList.add('open');
+            settingsOverlay.classList.add('open');
+        }
+
+        function closeSettings() {
+            settingsPanel.classList.remove('open');
+            settingsOverlay.classList.remove('open');
+        }
+
+        settingsBtn.addEventListener('click', openSettings);
+        settingsClose.addEventListener('click', closeSettings);
+        settingsOverlay.addEventListener('click', closeSettings);
+
+        function applySettings() {
+            const fontSize = setFontSize.value + 'px';
+            const lineHeight = setLineHeight.value;
+            const verseGap = setVerseGap.value + 'px';
+            const numWidth = setNumWidth.value + 'px';
+            const fontFamily = setFontFamily.value;
+            const textColor = setTextColor.value;
+            const bgColor = setBgColor.value;
+
+            // Determine text color for dark backgrounds
+            const bgOpt = setBgColor.options[setBgColor.selectedIndex];
+            const darkText = bgOpt.dataset.text || null;
+
+            // Apply to all verses on the page
+            document.querySelectorAll('.verse-text').forEach(function (el) {
+                el.style.fontSize = fontSize;
+                el.style.lineHeight = lineHeight;
+                el.style.fontFamily = fontFamily;
+                el.style.color = darkText || textColor;
+            });
+            document.querySelectorAll('.verse').forEach(function (el) {
+                el.style.marginBottom = verseGap;
+                el.style.lineHeight = lineHeight;
+            });
+            document.querySelectorAll('.verse-number').forEach(function (el) {
+                el.style.width = numWidth;
+                el.style.minWidth = numWidth;
+            });
+
+            // Background
+            document.body.style.background = bgColor;
+            if (darkText) {
+                document.body.style.color = darkText;
+                document.querySelectorAll('.chapter-title').forEach(function (el) {
+                    el.style.color = '#e0d8cc';
+                    el.style.borderBottomColor = '#665a48';
+                });
+            } else {
+                document.body.style.color = '';
+                document.querySelectorAll('.chapter-title').forEach(function (el) {
+                    el.style.color = '';
+                    el.style.borderBottomColor = '';
+                });
+            }
+
+            // Update preview
+            previewText.style.fontSize = fontSize;
+            previewText.style.lineHeight = lineHeight;
+            previewText.style.fontFamily = fontFamily;
+            previewText.style.color = darkText || textColor;
+            previewVerse.style.marginBottom = '0';
+            previewVerse.style.lineHeight = lineHeight;
+            previewNum.style.width = numWidth;
+            previewNum.style.minWidth = numWidth;
+            previewBox.style.background = bgColor;
+            if (darkText) {
+                previewBox.style.borderColor = '#444';
+            } else {
+                previewBox.style.borderColor = '';
+            }
+
+            // Update value displays
+            fontSizeVal.textContent = setFontSize.value + 'px';
+            lineHeightVal.textContent = setLineHeight.value;
+            verseGapVal.textContent = setVerseGap.value + 'px';
+            numWidthVal.textContent = setNumWidth.value + 'px';
+
+            // Save to localStorage
+            try {
+                localStorage.setItem('bibleSettings', JSON.stringify({
+                    fontFamily: setFontFamily.value,
+                    fontSize: setFontSize.value,
+                    lineHeight: setLineHeight.value,
+                    verseGap: setVerseGap.value,
+                    numWidth: setNumWidth.value,
+                    textColor: setTextColor.value,
+                    bgColor: setBgColor.value,
+                }));
+            } catch (e) { /* ignore */ }
+        }
+
+        function resetSettings() {
+            setFontFamily.value = DEFAULTS.fontFamily;
+            setFontSize.value = DEFAULTS.fontSize;
+            setLineHeight.value = DEFAULTS.lineHeight;
+            setVerseGap.value = DEFAULTS.verseGap;
+            setNumWidth.value = DEFAULTS.numWidth;
+            setTextColor.value = DEFAULTS.textColor;
+            setBgColor.value = DEFAULTS.bgColor;
+            applySettings();
+            try { localStorage.removeItem('bibleSettings'); } catch (e) { /* ignore */ }
+        }
+
+        function loadSettings() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('bibleSettings'));
+                if (!saved) return;
+                if (saved.fontFamily) setFontFamily.value = saved.fontFamily;
+                if (saved.fontSize) setFontSize.value = saved.fontSize;
+                if (saved.lineHeight) setLineHeight.value = saved.lineHeight;
+                if (saved.verseGap) setVerseGap.value = saved.verseGap;
+                if (saved.numWidth) setNumWidth.value = saved.numWidth;
+                if (saved.textColor) setTextColor.value = saved.textColor;
+                if (saved.bgColor) setBgColor.value = saved.bgColor;
+            } catch (e) { /* ignore */ }
+        }
+
+        // Bind setting controls
+        setFontFamily.addEventListener('change', applySettings);
+        setFontSize.addEventListener('input', applySettings);
+        setLineHeight.addEventListener('input', applySettings);
+        setVerseGap.addEventListener('input', applySettings);
+        setNumWidth.addEventListener('input', applySettings);
+        setTextColor.addEventListener('change', applySettings);
+        setBgColor.addEventListener('change', applySettings);
+        settingsReset.addEventListener('click', resetSettings);
+
+        // Re-apply settings after chapter navigation (since displayChapter recreates DOM)
+        const origShow = show;
+        show = function () {
+            origShow();
+            applySettings();
+        };
+
+        /* ---- Events ---- */
+        el.bookSelect.addEventListener('change', function () {
+            populateChapters(getSelectedBook());
+            show();
+        });
+        el.chapterSelect.addEventListener('change', show);
+        el.prevBtn.addEventListener('click', goPrev);
+        el.nextBtn.addEventListener('click', goNext);
+        document.addEventListener('keydown', function (e) {
+            if (settingsPanel.classList.contains('open')) {
+                if (e.key === 'Escape') closeSettings();
+                return;
+            }
+            if (e.key === 'ArrowLeft' && !el.prevBtn.disabled) goPrev();
+            if (e.key === 'ArrowRight' && !el.nextBtn.disabled) goNext();
+        });
+
+        /* ---- Init ---- */
+        (async function init() {
+            loadSettings();
+            try {
+                const resp = await fetch('NT_NewTranslation.csv');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const text = await resp.text();
+                const rows = parseCSV(text);
+                const result = buildData(rows);
+                bibleData = result.data;
+                bookList = result.bookList;
+
+                populateBooks();
+                populateChapters(bookList[0]);
+                show();
+            } catch (err) {
+                clearEl(el.content);
+                el.content.appendChild(makeEl('div', 'error', '載入失敗：' + err.message));
+            }
+        })();
+    </script>
+</body>
+
+</html>
